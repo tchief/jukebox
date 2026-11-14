@@ -22,6 +22,8 @@ export interface SvsConfig {
   categories?: { name: string; rgb: [number, number, number] }[]
   /** Treat sudden brightness jumps as events (lightning). Off for camera moves. */
   flashes?: boolean
+  /** Brightness jump (0..1) that counts as a flash; small yellow dots need a low one. */
+  flashThreshold?: number
 }
 
 export const SVS_CONFIG: SvsConfig[] = [
@@ -44,7 +46,7 @@ export const SVS_CONFIG: SvsConfig[] = [
     ],
   },
   {
-    svs: 5011, media: 'iss_lightning_sos_yearly_07312023_2048p60.mp4', maxSeconds: 90, flashes: true,
+    svs: 5011, media: 'iss_lightning_sos_yearly_07312023_2048p60.mp4', maxSeconds: 90, flashes: true, flashThreshold: 0.05,
     scale: { kind: 'luminance', label: 'Lightning flashes (brightness)' },
   },
   {

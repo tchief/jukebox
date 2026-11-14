@@ -85,7 +85,7 @@ export class EarthOrchestraEngine {
     } else {
       this.entry = entry
       this.status(`Loading ${entry.title}…`)
-      this.units = undefined; this.layerNames = undefined
+      this.units = undefined; this.layerNames = undefined; this.scaleKind = 'live'
       if (entry.svs && (await this.loadPrecomputed(entry))) { this.status('Ready'); return }
       this.source = entry.svs ? await svsSource(entry, this.opts.base ?? '') : syntheticSource()
     }
@@ -99,6 +99,8 @@ export class EarthOrchestraEngine {
   units?: { min: number; max: number; units: string }
   /** Names of colour categories (e.g. aerosol types). */
   layerNames?: string[]
+  /** How values were read: through a colour bar, brightness or hue. */
+  scaleKind: 'colorbar' | 'luminance' | 'hue' | 'live' = 'live'
 
   /**
    * Fast path: features computed ahead of time by scripts/precompute.ts with
@@ -119,6 +121,7 @@ export class EarthOrchestraEngine {
       : sc.kind === 'luminance' ? { ...luminanceScale(), label: sc.label } : { ...hueScale(), label: sc.label }
     if (sc.kind === 'colorbar' && sc.units) this.units = { min: sc.min!, max: sc.max!, units: sc.units }
     this.layerNames = pre.layers
+    this.scaleKind = sc.kind
     this.samples = pre.samples
     this.stats = timelineStats(this.beats)
     return true
@@ -126,7 +129,7 @@ export class EarthOrchestraEngine {
 
   /** A 0..1 value in physical units, if known. */
   valueText(t: number): string {
-    if (!this.units) return `${Math.round(t * 100)}% of the colour scale`
+    if (!this.units) return this.scaleKind === 'luminance' ? `brightness ${Math.round(t * 100)}%` : `${Math.round(t * 100)}% of the colour scale`
     const v = this.units.min + t * (this.units.max - this.units.min)
     return `about ${Math.abs(v) >= 100 ? Math.round(v) : v.toFixed(1)} ${this.units.units}`
   }

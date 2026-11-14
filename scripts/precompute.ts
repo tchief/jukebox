@@ -96,7 +96,7 @@ async function run(cfg: SvsConfig) {
   const frameBytes = W * H * 4
   const frames = Math.floor(raw.length / frameBytes)
   const state: AnalyzerState = {}
-  const opts = { ...DEFAULT_ANALYZE, layers: !!cfg.categories, categories: cfg.categories?.map((c) => c.rgb) }
+  const opts = { ...DEFAULT_ANALYZE, layers: !!cfg.categories, categories: cfg.categories?.map((c) => c.rgb), flashThreshold: cfg.flashThreshold ?? DEFAULT_ANALYZE.flashThreshold }
   const samples: FrameFeatures[] = []
   for (let i = 0; i < frames; i++) {
     const data = new Uint8ClampedArray(raw.buffer, raw.byteOffset + i * frameBytes, frameBytes)
