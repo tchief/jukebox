@@ -1,0 +1,120 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Earth Orchestra – conduct the planet</title>
+  <meta name="description" content="Earth Orchestra turns NASA Earth Information Center visualizations into music in real time. Listen, conduct, and hear our changing planet." />
+  <link rel="stylesheet" href="/src/ui/styles.css" />
+</head>
+<body>
+  <a class="skip" href="#play">Skip to the player</a>
+  <header class="top">
+    <div class="brand">
+      <span class="logo" aria-hidden="true"></span>
+      <div>
+        <h1>Earth Orchestra</h1>
+        <p class="tag">Hear NASA's Earth data. Conduct the planet.</p>
+      </div>
+    </div>
+    <nav class="links" aria-label="Pages">
+      <a href="/how.html">How it works</a>
+      <a href="/embed-demo.html">Embed</a>
+      <a href="/?kiosk=1">Kiosk</a>
+      <button id="help-btn" type="button" aria-haspopup="dialog">Keys <kbd>?</kbd></button>
+    </nav>
+  </header>
+
+  <main class="layout">
+    <nav class="catalog" aria-labelledby="cat-h">
+      <h2 id="cat-h">Visualizations</h2>
+      <ul id="catalog" role="list"></ul>
+      <label class="file">
+        <span>Or open your own EIC frame or video</span>
+        <input id="file" type="file" accept="video/*,image/*" />
+      </label>
+    </nav>
+
+    <section class="stage-wrap" aria-labelledby="viz-title">
+      <figure class="stage" id="stage">
+        <div id="visual" class="visual"></div>
+        <canvas id="overlay" class="overlay" aria-hidden="true"></canvas>
+        <div id="loading" class="loading" hidden>
+          <p id="loading-text">Loading…</p>
+          <progress id="loading-bar" max="1" value="0"></progress>
+        </div>
+      </figure>
+      <div class="caption">
+        <h2 id="viz-title">—</h2>
+        <p id="viz-desc"></p>
+        <p class="credit" id="viz-credit"></p>
+      </div>
+
+      <div class="controls" role="group" aria-label="Player">
+        <button id="play" class="play" type="button" aria-keyshortcuts="Space">Play</button>
+        <label>Sound
+          <select id="recipe"></select>
+        </label>
+        <label>Tempo <output id="tempo-out">1.0×</output>
+          <input id="tempo" type="range" min="0.5" max="2" step="0.05" value="1" aria-keyshortcuts="Plus Minus" />
+        </label>
+        <label>Volume <output id="dyn-out">100%</output>
+          <input id="dyn" type="range" min="0" max="1.5" step="0.05" value="1" aria-keyshortcuts="ArrowUp ArrowDown" />
+        </label>
+        <button id="describe" type="button" aria-keyshortcuts="I">Describe now</button>
+        <label class="check"><input id="narrate" type="checkbox" /> Narrate every 4 bars</label>
+      </div>
+
+      <div class="sections" role="group" aria-label="Orchestra sections. Toggle with keys A S D F G" id="sections"></div>
+      <p class="hint">Move over the map (or use <kbd>←</kbd> <kbd>→</kbd>) to put a spotlight on one longitude. <kbd>Esc</kbd> gives control back to the autopilot.</p>
+    </section>
+
+    <aside class="side">
+      <section aria-labelledby="legend-h">
+        <h2 id="legend-h">How to listen</h2>
+        <ul id="legend"></ul>
+        <p id="ensemble-desc" class="muted"></p>
+      </section>
+      <section aria-labelledby="now-h">
+        <h2 id="now-h">Now</h2>
+        <p id="now" class="now">Press Play.</p>
+        <div id="live" class="sr" aria-live="polite"></div>
+        <p id="mode" class="muted">Autopilot</p>
+      </section>
+      <section aria-labelledby="quality-h">
+        <h2 id="quality-h">Is the data audible?</h2>
+        <dl id="quality" class="quality"></dl>
+      </section>
+      <section aria-labelledby="export-h">
+        <h2 id="export-h">Take it with you</h2>
+        <div class="row">
+          <button id="wav" type="button">Download WAV</button>
+          <button id="midi" type="button">Download MIDI</button>
+        </div>
+        <p class="muted">Audio is synthesised from the data (no third-party samples), free to reuse.</p>
+      </section>
+    </aside>
+  </main>
+
+  <dialog id="help">
+    <h2>Keyboard</h2>
+    <dl class="keys">
+      <dt><kbd>Space</kbd></dt><dd>Play / pause</dd>
+      <dt><kbd>A</kbd> <kbd>S</kbd> <kbd>D</kbd> <kbd>F</kbd> <kbd>G</kbd></dt><dd>Strings, basses, melody, brass, percussion on/off</dd>
+      <dt><kbd>←</kbd> <kbd>→</kbd></dt><dd>Move the spotlight west / east</dd>
+      <dt><kbd>↑</kbd> <kbd>↓</kbd></dt><dd>Louder / softer</dd>
+      <dt><kbd>+</kbd> <kbd>−</kbd></dt><dd>Faster / slower</dd>
+      <dt><kbd>I</kbd></dt><dd>Describe what you hear</dd>
+      <dt><kbd>N</kbd> <kbd>P</kbd></dt><dd>Next / previous visualization</dd>
+      <dt><kbd>Esc</kbd></dt><dd>Back to autopilot</dd>
+    </dl>
+    <form method="dialog"><button>Close</button></form>
+  </dialog>
+
+  <footer class="foot">
+    Visualizations: <a href="https://svs.gsfc.nasa.gov/gallery/earth-information-center/">NASA's Goddard Space Flight Center Scientific Visualization Studio</a>, public domain.
+    Earth Orchestra is a NASA Space Apps Challenge 2026 project and is not affiliated with or endorsed by NASA.
+  </footer>
+  <script type="module" src="/src/ui/main.ts"></script>
+</body>
+</html>

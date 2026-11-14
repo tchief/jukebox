@@ -1,0 +1,49 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Embed Earth Orchestra</title>
+  <style>
+    :root { color-scheme: light; }
+    body { margin: 0; font: 17px/1.6 Georgia, "Times New Roman", serif; color: #1d232c; background: #f6f3ec; }
+    .site { max-width: 860px; margin: 0 auto; padding: 0 16px 3rem; }
+    .mast { display: flex; justify-content: space-between; align-items: baseline; border-bottom: 3px double #1d232c; padding: 1.2rem 0 .6rem; margin-bottom: 1.5rem; flex-wrap: wrap; gap: .5rem; }
+    .mast b { font-size: 1.4rem; letter-spacing: .04em; }
+    .mast span { font: 600 .8rem/1 system-ui, sans-serif; text-transform: uppercase; letter-spacing: .12em; color: #7a6a4f; }
+    h1 { font-size: 2.1rem; line-height: 1.15; margin: .2rem 0 1rem; }
+    .note { font: .85rem/1.5 system-ui, sans-serif; background: #fff8e1; border: 1px solid #e9d9a6; padding: .7rem 1rem; border-radius: 8px; }
+    pre { background: #10151f; color: #e8edf7; padding: 1rem; border-radius: 10px; overflow-x: auto; font-size: .85rem; }
+    earth-orchestra { margin: 1.4rem 0; }
+    h2 { font-size: 1.3rem; margin-top: 2rem; }
+    a { color: #1f5fa8; }
+  </style>
+  <script type="module" src="/src/embed.ts"></script>
+</head>
+<body>
+  <div class="site">
+    <p class="note">This is a <strong>made-up example website</strong> ("The Lakeside Science Hall" does not exist). It shows how any museum, school or newsroom page can add Earth Orchestra with one line of HTML. <a href="/">Back to the jukebox</a>.</p>
+    <header class="mast"><b>The Lakeside Science Hall</b><span>Exhibit notes · Our Ocean</span></header>
+    <article>
+      <h1>The ocean's warm conveyor belts</h1>
+      <p>Currents carry heat from the tropics toward the poles. In this NASA visualization, colour shows the temperature of the sea surface while the currents swirl across the globe. Press <em>Play sound</em> to hear it: warmer water rises in pitch, the melody sweeps the map from west to east.</p>
+
+      <earth-orchestra svs="3912" sound="orchestra"></earth-orchestra>
+
+      <p>Visitors who cannot see the screen can press <em>Describe</em> for a spoken summary, or follow the music alone.</p>
+
+      <h2>Add it to your page</h2>
+      <pre><code id="snippet">&lt;script type="module" src="https://YOUR-SITE/embed.js"&gt;&lt;/script&gt;
+&lt;earth-orchestra svs="3912" sound="orchestra"&gt;&lt;/earth-orchestra&gt;</code></pre>
+      <p>Use any SVS visualization number in <code>svs</code>. Sounds: <code>orchestra</code>, <code>raw</code>, <code>lullaby</code>, <code>evening-raga</code>, <code>space</code>. The original visual is never changed and sound starts only when the visitor asks for it.</p>
+
+      <h2>Offline test version</h2>
+      <earth-orchestra svs="demo-ocean" sound="lullaby"></earth-orchestra>
+    </article>
+  </div>
+  <script>
+    const s = document.getElementById('snippet')
+    s.textContent = s.textContent.replace('https://YOUR-SITE', location.origin)
+  </script>
+</body>
+</html>

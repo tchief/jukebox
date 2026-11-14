@@ -1,0 +1,77 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>How Earth Orchestra works</title>
+  <link rel="stylesheet" href="/src/ui/styles.css" />
+  <style>
+    .doc { max-width: 820px; margin: 0 auto; padding: 0 16px 3rem; }
+    .doc h1 { font-size: 2.2rem; margin: .5rem 0 1rem; }
+    .doc h2 { color: var(--accent); margin-top: 2.2rem; }
+    .doc p, .doc li { color: var(--text); }
+    .flow { display: flex; flex-wrap: wrap; gap: .5rem; align-items: center; margin: 1rem 0; }
+    .flow span { background: var(--panel-2); border: 1px solid var(--line); border-radius: 10px; padding: .45rem .7rem; font-size: .9rem; }
+    .flow i { color: var(--muted); font-style: normal; }
+    table { border-collapse: collapse; width: 100%; font-size: .92rem; }
+    th, td { border-bottom: 1px solid var(--line); padding: .5rem; text-align: left; vertical-align: top; }
+    th { color: var(--muted); font-weight: 600; }
+    code { background: var(--panel-2); padding: .1em .35em; border-radius: 5px; }
+  </style>
+</head>
+<body>
+  <header class="top"><div class="brand"><span class="logo" aria-hidden="true"></span><div><h1><a href="/" style="color:inherit;text-decoration:none">Earth Orchestra</a></h1><p class="tag">How it works</p></div></div></header>
+  <main class="doc">
+    <h1>The data writes the score. You conduct it.</h1>
+    <p>Earth Orchestra listens to NASA Earth Information Center visualizations frame by frame and turns what it sees into music in real time. It is built so that the science stays honest and the music stays pleasant.</p>
+
+    <h2>The chain</h2>
+    <div class="flow" aria-label="Processing chain">
+      <span>EIC frames</span><i>→</i><span>Analyser</span><i>→</i><span>Features</span><i>→</i><span>Translation</span><i>→</i><span>Musical intents</span><i>→</i><span>Music system</span><i>→</i><span>Notes</span><i>→</i><span>Ensemble</span><i>→</i><span>Sound</span>
+    </div>
+    <ol>
+      <li><strong>Analyser.</strong> Each frame is reduced to 160×80 pixels. Every pixel's colour is turned back into a data value using the visualization's colour bar (or brightness for night lights and lightning). Land, background and labels are ignored. We measure the average, the spread, the share of extremes, how fast the picture changes, sudden flashes, and the value in 32 columns from west to east.</li>
+      <li><strong>Translation.</strong> Plain, monotonic rules: more of the quantity always sounds higher or more intense, never the opposite. Each visualization type has its own translation (sequential values, anomalies, brightness).</li>
+      <li><strong>Musical intents.</strong> Contour, tension, density, dynamics, brightness and a melody line: musical meaning with no notes yet.</li>
+      <li><strong>Music system.</strong> A tuning, a scale and a harmony turn intents into notes. Pitches are stored as fractional MIDI numbers, so equal temperament, just intonation and micro-tonal systems all fit.</li>
+      <li><strong>Ensemble.</strong> Synthesised voices play the notes: orchestra, raw data, lullaby. No third-party samples, so the audio is free to reuse.</li>
+    </ol>
+
+    <h2>How to listen</h2>
+    <table>
+      <thead><tr><th>You hear</th><th>It means</th></tr></thead>
+      <tbody>
+        <tr><td>Harmony rising or falling</td><td>The average value of the map going up or down</td></tr>
+        <tr><td>Melody sweeping once per bar</td><td>A needle reading the map from west to east; high notes are high values. It also moves left → right in stereo.</td></tr>
+        <tr><td>Brass and dissonance</td><td>Extremes: the top of the colour scale, or large anomalies</td></tr>
+        <tr><td>More notes per beat</td><td>The picture changing faster</td></tr>
+        <tr><td>Drums</td><td>Sudden flashes, such as lightning, panned to where they happen</td></tr>
+        <tr><td>Soft reference tone each bar</td><td>The middle of the colour scale, a landmark to compare with</td></tr>
+        <tr><td>Quiet tick each bar</td><td>A time scale, so you know where you are in the clip</td></tr>
+      </tbody>
+    </table>
+
+    <h2>Autopilot and conductor</h2>
+    <p>By default the data conducts: no one needs to touch anything. A person can take over with three signals (tempo, loudness, which sections play) and a spotlight that makes one longitude sing alone. The conductor can shape the performance but cannot change what the data says. After 45 seconds of rest the autopilot returns, which suits museum screens.</p>
+
+    <h2>Variants are recipes</h2>
+    <p>A recipe names a tuning, scale, harmony, ensemble and tempo. The same recipe and frames always give the same score, so variants can be compared fairly and exported as WAV or MIDI for composers and notation software.</p>
+
+    <h2>Is the data audible?</h2>
+    <p>For every visualization the jukebox shows a reverse test: how strongly note pitch correlates with the value under the needle (how much of the data you could recover by ear), how smooth the melody is, and how many flashes became drum hits.</p>
+
+    <h2>Accessibility</h2>
+    <ul>
+      <li>Everything works from the keyboard; press <kbd>?</kbd> for keys.</li>
+      <li>Each visualization has a written description; <kbd>I</kbd> describes what is sounding now, and narration can speak a summary every few bars through the screen reader.</li>
+      <li>Sound landmarks (reference tone, time ticks, stereo position) follow established sonification practice.</li>
+    </ul>
+
+    <h2>Use it elsewhere</h2>
+    <p>Add <code>&lt;earth-orchestra svs="3912"&gt;</code> to any page (<a href="/embed-demo.html">see the example</a>), run full-screen with <a href="/?kiosk=1">kiosk mode</a>, or download WAV and MIDI files.</p>
+
+    <h2>Credits</h2>
+    <p>Visualizations by NASA's Goddard Space Flight Center Scientific Visualization Studio (public domain). Audio engine: <a href="https://tonejs.github.io/">Tone.js</a> (MIT), MIDI export: <a href="https://github.com/Tonejs/Midi">@tonejs/midi</a> (MIT). Earth Orchestra is a NASA Space Apps Challenge 2026 project and is not affiliated with or endorsed by NASA.</p>
+  </main>
+</body>
+</html>
