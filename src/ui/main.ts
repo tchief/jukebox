@@ -13,6 +13,8 @@ const kiosk = params.has('kiosk')
 if (kiosk) document.body.classList.add('kiosk')
 
 const engine = new EarthOrchestraEngine({ loop: true })
+// Exposed for automation (soundtrack rendering, tests) and for curious developers.
+;(window as unknown as { earthOrchestra: EarthOrchestraEngine }).earthOrchestra = engine
 let current = 0
 let lastBeat: BeatInfo | undefined
 let beatStartedAt = 0
