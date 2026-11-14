@@ -5,6 +5,7 @@ import { SECTIONS, type SectionId } from '../core/types'
 import { ensembles } from '../voices/ensembles'
 import { download } from '../export/files'
 import { HUE_FAMILY_NAMES } from '../analysis/colorscale'
+import { batonSupported, enableBaton } from '../perform/baton'
 
 const $ = <T extends HTMLElement = HTMLElement>(id: string) => document.getElementById(id) as T
 const params = new URLSearchParams(location.search)
@@ -15,6 +16,10 @@ const engine = new EarthOrchestraEngine({ loop: true })
 let current = 0
 let lastBeat: BeatInfo | undefined
 let beatStartedAt = 0
+/** Kiosk: audio may start only after a first touch; then the jukebox runs by itself. */
+let kioskStarted = false
+let loops = 0
+let failures = 0
 
 // ───────────── Catalogue ─────────────
 const list = $('catalog')
@@ -78,9 +83,12 @@ async function open(e: CatalogEntry | File) {
     } else credit.textContent = engine.source!.credit
     refreshSide()
     $('now').textContent = engine.describe()
-    if (kiosk) void engine.play().then(() => ($('play').textContent = 'Pause'))
+    loops = 0; failures = 0
+    if (kiosk && kioskStarted) void engine.play().then(() => ($('play').textContent = 'Pause'))
   } catch (err) {
     $('loading-text').textContent = `Could not load: ${(err as Error).message}. Try the demo or open a file.`
+    // Kiosk: skip what fails; if nothing from NASA loads, fall back to the offline demo.
+    if (kiosk) setTimeout(() => void select(++failures >= CATALOG.length ? 0 : current + 1), 4000)
     return
   }
   loading.hidden = true
@@ -119,6 +127,8 @@ $('play').addEventListener('click', () => void togglePlay())
 
 engine.onBeat.push((info) => {
   lastBeat = info; beatStartedAt = performance.now()
+  // Kiosk: after two passes of a clip, move on to the next visualization.
+  if (kiosk && info.beat === 0 && ++loops > 2 && !engine.conductor.active()) { void select(current + 1); return }
   if (info.beat % 4 === 0) {
     const text = engine.describe(info)
     $('now').textContent = text
@@ -210,7 +220,36 @@ document.addEventListener('keydown', (e) => {
   }
 })
 
+// ───────────── Phone baton ─────────────
+if (batonSupported()) {
+  const b = document.createElement('button')
+  b.type = 'button'; b.textContent = 'Phone as baton'
+  b.title = 'Raise the phone for louder, tilt left/right for the spotlight, beat downwards to set the tempo'
+  let stop: (() => void) | null = null
+  b.addEventListener('click', async () => {
+    if (stop) { stop(); stop = null; b.textContent = 'Phone as baton'; b.setAttribute('aria-pressed', 'false'); return }
+    try {
+      stop = await enableBaton(engine.conductor, () => navigator.vibrate?.(15))
+      b.textContent = 'Baton on'; b.setAttribute('aria-pressed', 'true')
+      if (!engine.playing) await togglePlay()
+    } catch (e) { $('live').textContent = (e as Error).message }
+  })
+  document.querySelector('.controls')!.appendChild(b)
+}
+
+// ───────────── Kiosk start screen ─────────────
+if (kiosk) {
+  const cover = document.createElement('button')
+  cover.className = 'kiosk-start'; cover.type = 'button'
+  cover.innerHTML = '<span class="logo" aria-hidden="true"></span><strong>Touch to hear the Earth</strong><span>NASA Earth data, played as music</span>'
+  cover.addEventListener('click', async () => {
+    kioskStarted = true; cover.remove()
+    if (!engine.playing && engine.samples.length) await togglePlay()
+  })
+  document.body.appendChild(cover)
+}
+
 // ───────────── Start ─────────────
 const start = params.get('viz')
-const startIndex = Math.max(0, CATALOG.findIndex((c) => c.id === start || String(c.svs) === start))
+const startIndex = Math.max(0, CATALOG.findIndex((c) => c.id === start || String(c.svs) === start), kiosk && !start ? 1 : 0)
 void select(startIndex)

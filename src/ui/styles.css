@@ -93,3 +93,9 @@ body.kiosk .catalog, body.kiosk .side, body.kiosk .links, body.kiosk .foot, body
   .sections { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 }
 @media (prefers-reduced-motion: reduce) { * { transition: none !important; animation: none !important; } }
+
+.kiosk-start { position: fixed; inset: 0; z-index: 20; display: grid; place-content: center; justify-items: center; gap: 1rem; border: 0; border-radius: 0; background: radial-gradient(900px 500px at 50% 40%, #12234a, var(--bg)); font-size: 1.3rem; }
+.kiosk-start strong { font-family: var(--serif); font-size: clamp(2rem, 6vw, 4rem); }
+.kiosk-start .logo { width: 120px; height: 120px; }
+body.kiosk .stage { max-height: 78vh; }
+body.kiosk .controls .play { font-size: 1.3rem; padding: 1rem 2rem; }
