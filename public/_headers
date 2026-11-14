@@ -3,3 +3,9 @@
   Cache-Control: public, max-age=300
 /assets/*
   Access-Control-Allow-Origin: *
+/features/*
+  Access-Control-Allow-Origin: *
+  Cache-Control: public, max-age=3600
+/media/*
+  Access-Control-Allow-Origin: *
+  Cache-Control: public, max-age=86400

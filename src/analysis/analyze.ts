@@ -15,6 +15,8 @@ export interface AnalyzeOptions {
   layers: boolean
   /** Brightness jump counted as a flash. */
   flashThreshold: number
+  /** Named colour categories (e.g. aerosol types): each becomes a layer instead of hue families. */
+  categories?: [number, number, number][]
 }
 
 export const DEFAULT_ANALYZE: AnalyzeOptions = { columns: 32, rows: 16, layers: true, flashThreshold: 0.35 }
@@ -35,7 +37,7 @@ export function analyzeFrame(
   const colSum = new Float64Array(opts.columns), colN = new Float64Array(opts.columns)
   const rowSum = new Float64Array(opts.rows), rowN = new Float64Array(opts.rows)
   const flashCol = new Float64Array(opts.columns), flashColN = new Float64Array(opts.columns)
-  const fam = new Float64Array(6)
+  const fam = new Float64Array(opts.categories ? opts.categories.length : 6)
   let sum = 0, sum2 = 0, n = 0, hot = 0, flash = 0, change = 0, changeN = 0
 
   for (let y = 0; y < h; y++) {
@@ -51,7 +53,14 @@ export function analyzeFrame(
         flashColN[col]++
         if (jump > opts.flashThreshold) { flash++; flashCol[col]++ }
       }
-      if (opts.layers) {
+      if (opts.categories) {
+        let best = 80 * 80, bi = -1
+        opts.categories.forEach((c, k) => {
+          const d = (c[0] - r) ** 2 + (c[1] - g) ** 2 + (c[2] - b) ** 2
+          if (d < best) { best = d; bi = k }
+        })
+        if (bi >= 0) fam[bi]++
+      } else if (opts.layers) {
         const f = hueFamily(r, g, b)
         if (f >= 0) fam[f]++
       }

@@ -103,10 +103,15 @@ $<HTMLInputElement>('file').addEventListener('change', (ev) => {
 
 function refreshSide() {
   const legend = $('legend'); legend.replaceChildren()
-  engine.translation.legend.forEach((l) => { const li = document.createElement('li'); li.textContent = l; legend.appendChild(li) })
+  const hasFlashes = engine.samples.some((f) => f.flash > 0.01)
+  engine.translation.legend
+    .filter((l) => hasFlashes || !/flash/i.test(l))
+    .forEach((l) => { const li = document.createElement('li'); li.textContent = l; legend.appendChild(li) })
   const fam = engine.samples.length ? engine.samples[0].layers : []
-  const used = fam.map((d, i) => (d > 0.05 ? HUE_FAMILY_NAMES[i] : '')).filter(Boolean)
-  if (used.length > 1) { const li = document.createElement('li'); li.textContent = `Colour families heard as separate sustained voices: ${used.join(', ')}.`; legend.appendChild(li) }
+  const names = engine.layerNames ?? HUE_FAMILY_NAMES
+  const used = fam.map((d, i) => (d > 0.05 ? names[i] : '')).filter(Boolean)
+  if (engine.layerNames) { const li = document.createElement('li'); li.textContent = `Each type is its own sustained voice: ${engine.layerNames.join(', ')}.`; legend.appendChild(li) }
+  else if (used.length > 1) { const li = document.createElement('li'); li.textContent = `Colour families heard as separate sustained voices: ${used.join(', ')}.`; legend.appendChild(li) }
   const li = document.createElement('li'); li.textContent = `Colour scale: ${engine.scale.label}.`; legend.appendChild(li)
   $('ensemble-desc').textContent = ensembles.get(engine.recipe.ensemble).description
   if (engine.samples.length) {

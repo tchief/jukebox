@@ -15,8 +15,8 @@ import { recipeById } from './core/recipes'
 import { timelineStats, translations, type TimelineStats } from './translate/translations'
 import { analyzeFrame, DEFAULT_ANALYZE, type AnalyzerState } from './analysis/analyze'
 import { hueScale, luminanceScale, lutScale, stopsFromColorbar, THERMAL_STOPS, type ColorScale } from './analysis/colorscale'
-import { CATALOG, type CatalogEntry } from './sources/catalog'
-import { fileSource, svsSource, syntheticSource, type VisualSource } from './sources/sources'
+import { CATALOG, SVS_CREDIT, type CatalogEntry } from './sources/catalog'
+import { fileSource, imageSource, proxied, svsSource, syntheticSource, videoSource, type VisualSource } from './sources/sources'
 import { ensembles, type Voices } from './voices/ensembles'
 import { Conductor, voiceEnabled } from './perform/conductor'
 import { evaluate, type Evaluation } from './export/evaluate'
@@ -29,6 +29,13 @@ const SAMPLE_RATE = 2
 export interface BeatInfo { beat: number; bar: number; bars: number; features: FrameFeatures; events: NoteEvent[]; spotlight: number | null }
 
 export interface EngineOptions { base?: string; loop?: boolean }
+
+interface Precomputed {
+  svs: number; page: string; media: string; kind: 'video' | 'image'; duration: number
+  scale: { kind: 'colorbar' | 'luminance' | 'hue'; label: string; stops?: [number, number, number][]; min?: number; max?: number; units?: string }
+  layers?: string[]
+  samples: FrameFeatures[]
+}
 
 export class EarthOrchestraEngine {
   entry: CatalogEntry = CATALOG[0]
@@ -78,12 +85,50 @@ export class EarthOrchestraEngine {
     } else {
       this.entry = entry
       this.status(`Loading ${entry.title}…`)
+      this.units = undefined; this.layerNames = undefined
+      if (entry.svs && (await this.loadPrecomputed(entry))) { this.status('Ready'); return }
       this.source = entry.svs ? await svsSource(entry, this.opts.base ?? '') : syntheticSource()
     }
     this.scale = await this.makeScale()
     this.status('Listening to the frames…')
     await this.analyse(progress)
     this.status('Ready')
+  }
+
+  /** Physical units of the colour scale, when known (e.g. 0–32 °C). */
+  units?: { min: number; max: number; units: string }
+  /** Names of colour categories (e.g. aerosol types). */
+  layerNames?: string[]
+
+  /**
+   * Fast path: features computed ahead of time by scripts/precompute.ts with
+   * the same analyser. The NASA file is only streamed for display.
+   */
+  private async loadPrecomputed(entry: CatalogEntry): Promise<boolean> {
+    const base = this.opts.base ?? ''
+    let pre: Precomputed
+    try {
+      const res = await fetch(`${base}/features/${entry.svs}.json`)
+      if (!res.ok || !(res.headers.get('content-type') ?? '').includes('json')) return false
+      pre = await res.json()
+    } catch { return false }
+    const src = pre.kind === 'video' ? await videoSource(proxied(pre.media, base)) : await imageSource(proxied(pre.media, base), pre.duration)
+    this.source = { ...src, duration: pre.duration, title: entry.title, credit: SVS_CREDIT, pageUrl: pre.page }
+    const sc = pre.scale
+    this.scale = sc.kind === 'colorbar' && sc.stops ? lutScale(`colorbar-${entry.svs}`, sc.label, sc.stops)
+      : sc.kind === 'luminance' ? { ...luminanceScale(), label: sc.label } : { ...hueScale(), label: sc.label }
+    if (sc.kind === 'colorbar' && sc.units) this.units = { min: sc.min!, max: sc.max!, units: sc.units }
+    this.layerNames = pre.layers
+    this.samples = pre.samples
+    this.stats = timelineStats(this.beats)
+    return true
+  }
+
+  /** A 0..1 value in physical units, if known. */
+  valueText(t: number): string {
+    if (!this.units) return `${Math.round(t * 100)}% of the colour scale`
+    const v = this.units.min + t * (this.units.max - this.units.min)
+    return `about ${Math.abs(v) >= 100 ? Math.round(v) : v.toFixed(1)} ${this.units.units}`
   }
 
   private async makeScale(): Promise<ColorScale> {
@@ -225,10 +270,11 @@ export class EarthOrchestraEngine {
     const level = f.mean > mid + 0.02 ? 'above' : f.mean < mid - 0.02 ? 'below' : 'near'
     const parts = [
       info ? `Bar ${info.bar + 1} of ${info.bars}.` : '',
-      `Average ${pct(f.mean)} of the colour scale, ${level} the middle of this clip, so the harmony is ${level === 'above' ? 'higher' : level === 'below' ? 'lower' : 'in the middle'}.`,
+      `Average ${this.valueText(f.mean)}, ${level} the middle of this clip, so the harmony is ${level === 'above' ? 'higher' : level === 'below' ? 'lower' : 'in the middle'}.`,
       f.hot > 0.02 ? `Extremes cover ${pct(f.hot)} of the map; brass marks them.` : 'Few extremes.',
+      this.layerNames && f.layers.length ? `Strongest: ${this.layerNames[f.layers.indexOf(Math.max(...f.layers))]}.` : '',
       f.flash > 0.05 ? 'Flashes are sounding as drums.' : '',
-      info?.spotlight != null ? `Spotlight at ${Math.round(info.spotlight * 360 - 180)}° longitude.` : '',
+      info?.spotlight != null ? `Spotlight at ${Math.round(info.spotlight * 360 - 180)}° longitude: ${this.valueText(f.columns[Math.min(f.columns.length - 1, Math.round(info.spotlight * (f.columns.length - 1)))])}.` : '',
     ]
     return parts.filter(Boolean).join(' ')
   }
