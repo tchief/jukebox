@@ -74,8 +74,8 @@ export function pitchFor(t: number, scale: Scale, tuning: Tuning, root: number, 
 // ───────────────────────────── Harmonies ───────────────────────────
 
 export interface Harmony extends Module {
-  /** Chord (fractional MIDI pitches) for a tension and register. */
-  chord(tension: number, contour: number, scale: Scale, tuning: Tuning, root: number): number[]
+  /** Chord (fractional MIDI pitches) for a tension and register; `bar` drives the harmonic progression. */
+  chord(tension: number, contour: number, scale: Scale, tuning: Tuning, root: number, bar?: number): number[]
 }
 export const harmonies = new Registry<Harmony>('harmony')
 
@@ -85,10 +85,14 @@ const CALM_TO_TENSE = [0, 5, 3, 1, 4, 2, 6]
 harmonies.add({
   id: 'calm-to-tense',
   label: 'Calm → tense chords',
-  chord(tension, contour, scale, tuning, root) {
+  chord(tension, contour, scale, tuning, root, bar = 0) {
     const deg = scale.cents.length || 1
     const pick = CALM_TO_TENSE.filter((d) => d < deg)
-    const rootDeg = pick[Math.min(pick.length - 1, Math.floor(clamp01(tension) * pick.length))]
+    // Calm data walks a familiar progression (I–vi–IV–V); tension pushes toward less stable chords.
+    const PROGRESSION = [0, 1, 2, 4]
+    const step = PROGRESSION[bar % PROGRESSION.length] % pick.length
+    const shift = Math.floor(clamp01(tension) * 3)
+    const rootDeg = pick[Math.min(pick.length - 1, step + shift)]
     const size = tension < 0.35 ? 3 : tension < 0.7 ? 4 : 5
     // Register follows the contour: one octave of travel.
     const base = root - 12 + Math.round(clamp01(contour) * 12)
@@ -139,8 +143,9 @@ export function renderStep(step: RenderStep, cfg: SystemConfig): NoteEvent[] {
   const ev: NoteEvent[] = []
   const dyn = clamp01(it.dynamics)
 
+  const bar = Math.floor(beat / beatsPerBar)
   if (beatInBar === 0) {
-    const chord = harmony.chord(it.tension, it.contour, scale, tuning, cfg.root)
+    const chord = harmony.chord(it.tension, it.contour, scale, tuning, cfg.root, bar)
     for (const p of chord) ev.push({ pitch: p, time: beat, dur: beatsPerBar, velocity: 0.35 + dyn * 0.35, voice: 'pad' })
     ev.push({ pitch: chord[0] - 12, time: beat, dur: beatsPerBar / 2, velocity: 0.5 + dyn * 0.3, voice: 'bass' })
     if (it.tension > 0.55) {
@@ -152,7 +157,7 @@ export function renderStep(step: RenderStep, cfg: SystemConfig): NoteEvent[] {
     ev.push({ pitch: NaN, time: beat, dur: 0.05, velocity: 0.4, voice: 'tick' })
   }
   if (beatInBar === Math.floor(beatsPerBar / 2)) {
-    const chord = harmony.chord(it.tension, it.contour, scale, tuning, cfg.root)
+    const chord = harmony.chord(it.tension, it.contour, scale, tuning, cfg.root, bar)
     ev.push({ pitch: chord[0] - 12, time: beat, dur: beatsPerBar / 2, velocity: 0.4 + dyn * 0.3, voice: 'bass' })
   }
 
