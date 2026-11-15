@@ -230,16 +230,38 @@ document.addEventListener('keydown', (e) => {
 // ───────────── Phone baton ─────────────
 if (batonSupported()) {
   const b = document.createElement('button')
-  b.type = 'button'; b.textContent = 'Phone as baton'
+  b.type = 'button'; b.className = 'baton-btn'; b.textContent = '📱 Phone as baton'
   b.title = 'Raise the phone for louder, tilt left/right for the spotlight, beat downwards to set the tempo'
+  // A big, obvious live panel: you see every move change the music.
+  const hud = document.createElement('div')
+  hud.className = 'baton-hud'; hud.hidden = true
+  hud.innerHTML = `<p class="baton-help">Raise the phone = <b>louder</b> · tilt left/right = <b>spotlight</b> moves west/east · beat down = <b>tempo</b></p>
+    <div class="meter"><span>Loudness</span><i><b id="hud-dyn"></b></i><em id="hud-dyn-v"></em></div>
+    <div class="meter"><span>Spotlight</span><i><b id="hud-spot" class="dot"></b></i><em id="hud-spot-v"></em></div>
+    <div class="meter"><span>Tempo</span><i><b id="hud-tempo"></b></i><em id="hud-tempo-v"></em></div>`
+  document.querySelector('.controls')!.after(hud)
+  const showHud = () => {
+    const st = engine.conductor.state()
+    const dyn = Math.min(1, st.dynamics / 1.5)
+    $('hud-dyn').style.width = `${Math.round(dyn * 100)}%`; $('hud-dyn-v').textContent = `${Math.round(st.dynamics * 100)}%`
+    const sp = st.spotlight
+    $('hud-spot').style.left = sp == null ? '50%' : `${Math.round(sp * 100)}%`
+    $('hud-spot').style.opacity = sp == null ? '0.3' : '1'
+    $('hud-spot-v').textContent = sp == null ? 'whole map' : sp < 0.4 ? 'west' : sp > 0.6 ? 'east' : 'centre'
+    $('hud-tempo').style.width = `${Math.round(Math.min(1, st.tempo / 2) * 100)}%`
+    $('hud-tempo-v').textContent = `${Math.round(engine.recipe.bpm * st.tempo)} bpm`
+  }
+  engine.conductor.listeners.push(() => { if (!hud.hidden) showHud() })
   let stop: (() => void) | null = null
   b.addEventListener('click', async () => {
-    if (stop) { stop(); stop = null; b.textContent = 'Phone as baton'; b.setAttribute('aria-pressed', 'false'); return }
+    if (stop) { stop(); stop = null; hud.hidden = true; b.textContent = '📱 Phone as baton'; b.setAttribute('aria-pressed', 'false'); return }
+    // Start the sound inside the tap itself (phones only allow audio from a direct tap).
+    if (!engine.playing) void togglePlay()
     try {
-      stop = await enableBaton(engine.conductor, () => navigator.vibrate?.(15))
-      b.textContent = 'Baton on'; b.setAttribute('aria-pressed', 'true')
-      if (!engine.playing) await togglePlay()
-    } catch (e) { $('live').textContent = (e as Error).message }
+      stop = await enableBaton(engine.conductor, () => { navigator.vibrate?.(15); hud.classList.remove('beat'); void hud.offsetWidth; hud.classList.add('beat') })
+      b.textContent = '📱 Baton on (tap to stop)'; b.setAttribute('aria-pressed', 'true')
+      hud.hidden = false; showHud()
+    } catch (e) { $('live').textContent = (e as Error).message; hud.hidden = false; hud.querySelector('.baton-help')!.textContent = `Motion sensors are not available: ${(e as Error).message}` }
   })
   document.querySelector('.controls')!.appendChild(b)
 }

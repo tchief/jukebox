@@ -185,6 +185,7 @@ export class EarthOrchestraEngine {
 
   async play() {
     if (!this.samples.length) return
+    unlockMobileAudio()
     await Tone.start()
     if (!this.master) this.master = new Tone.Gain(1).connect(new Tone.Limiter(-1).toDestination())
     if (!this.voices) { this.voices = ensembles.get(this.recipe.ensemble).build(this.master); await Tone.loaded() }
@@ -281,4 +282,20 @@ export class EarthOrchestraEngine {
     ]
     return parts.filter(Boolean).join(' ')
   }
+}
+
+/**
+ * iPhones mute Web Audio when the ring/silent switch is on. Declaring a
+ * "playback" audio session (Safari 16.4+) and starting a silent <audio>
+ * element in the same tap lets the music play like a video would.
+ */
+let unlocked = false
+function unlockMobileAudio() {
+  if (unlocked) return
+  unlocked = true
+  try { (navigator as unknown as { audioSession?: { type: string } }).audioSession!.type = 'playback' } catch { /* not supported */ }
+  try {
+    const a = new Audio('data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQAAAAA=')
+    a.loop = true; a.setAttribute('playsinline', ''); void a.play().catch(() => {})
+  } catch { /* ignore */ }
 }

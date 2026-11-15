@@ -99,3 +99,16 @@ body.kiosk .catalog, body.kiosk .side, body.kiosk .links, body.kiosk .foot, body
 .kiosk-start .logo { width: 120px; height: 120px; }
 body.kiosk .stage { max-height: 78vh; }
 body.kiosk .controls .play { font-size: 1.3rem; padding: 1rem 2rem; }
+
+/* Phone baton */
+.baton-btn { font-weight: 700; }
+.baton-hud { margin: .75rem 0; padding: .75rem 1rem; border: 2px solid #ffd666; border-radius: 12px; background: #0e1528; }
+.baton-hud[hidden] { display: none; }
+.baton-hud.beat { animation: baton-beat .25s ease-out; }
+@keyframes baton-beat { from { box-shadow: 0 0 0 8px rgba(255, 214, 102, .5); } to { box-shadow: 0 0 0 0 rgba(255, 214, 102, 0); } }
+.baton-help { margin: 0 0 .5rem; font-size: .95rem; }
+.meter { display: grid; grid-template-columns: 6.5rem 1fr 5.5rem; align-items: center; gap: .6rem; margin: .35rem 0; }
+.meter i { position: relative; height: 18px; background: #1b2540; border-radius: 9px; overflow: hidden; }
+.meter i b { position: absolute; left: 0; top: 0; bottom: 0; background: #ffd666; border-radius: 9px; transition: width .1s, left .1s; }
+.meter i b.dot { width: 18px; transform: translateX(-50%); background: #8ab4ff; }
+.meter em { font-style: normal; font-variant-numeric: tabular-nums; color: #cfd8ea; }

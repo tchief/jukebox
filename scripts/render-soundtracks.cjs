@@ -33,7 +33,9 @@ const ALL = ['3912', '5313', '5669', '5011', '5196', '4950', '4960', '5425', '55
     const wav = path.join(require('node:os').tmpdir(), `${svs}-${recipe}.wav`)
     fs.writeFileSync(wav, Buffer.from(res.wav, 'base64'))
     const mp4 = path.join(outDir, `${svs}-${recipe}.mp4`)
-    const media = res.media
+    // Prefer the local copy (looping a remote file over HTTP can stall ffmpeg).
+    const local = path.join('public', new URL(res.media).pathname)
+    const media = fs.existsSync(local) ? local : res.media
     const videoIn = res.isVideo ? ['-stream_loop', '-1', '-i', media] : ['-loop', '1', '-framerate', '30', '-i', media]
     execFileSync('ffmpeg', ['-loglevel', 'error', '-y', ...videoIn, '-i', wav, '-map', '0:v', '-map', '1:a', '-t', String(res.seconds),
       '-vf', 'scale=1024:-2', '-c:v', 'libx264', '-preset', 'veryfast', '-crf', '30', '-pix_fmt', 'yuv420p', '-af', 'loudnorm=I=-16:TP=-1.5:LRA=11', '-c:a', 'aac', '-b:a', '192k', '-movflags', '+faststart', mp4], { env: { ...process.env, ...(process.env.HTTPS_PROXY ? { http_proxy: process.env.HTTPS_PROXY } : {}) } })
