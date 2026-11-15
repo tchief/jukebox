@@ -2,7 +2,7 @@
 
 **Hear NASA's Earth data. Conduct the planet.**
 
-**Live:** https://earth-orchestra.pages.dev · [How it works](https://earth-orchestra.pages.dev/how) · [Embed example](https://earth-orchestra.pages.dev/embed-demo) · [Kiosk](https://earth-orchestra.pages.dev/?kiosk=1)
+**Live:** https://conduct-the-earth.pages.dev · [How it works](https://conduct-the-earth.pages.dev/how) · [Embed example](https://conduct-the-earth.pages.dev/embed-demo) · [Kiosk](https://conduct-the-earth.pages.dev/?kiosk=1)
 
 Conduct the Earth is an "Earth Jukebox" for the NASA Space Apps Challenge 2026 challenge
 *The Earth Information Jukebox*. It turns NASA Earth Information Center (EIC) visualizations
@@ -38,7 +38,7 @@ Variants are **recipes** (`src/core/recipes.ts`): the same recipe and frames alw
 ## Use it
 
 - App: `/` · Kiosk: `/?kiosk=1` · Start with a visualization: `/?viz=3912`
-- Browser extension (`extension/`, or [download zip](https://earth-orchestra.pages.dev/earth-orchestra-extension.zip)): adds an optional "Play as music" button to every NASA SVS page. Install: unzip → `chrome://extensions` → Developer mode → Load unpacked.
+- Browser extension (`extension/`, or [download zip](https://conduct-the-earth.pages.dev/earth-orchestra-extension.zip)): adds an optional "Play as music" button to every NASA SVS page. Install: unzip → `chrome://extensions` → Developer mode → Load unpacked.
 - Iframe player: `/frame.html?svs=3912&sound=orchestra`
 - Embed on any page:
 
