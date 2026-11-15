@@ -5,6 +5,7 @@
   "type": "module",
   "description": "Conduct the Earth: real-time sonification of NASA Earth Information Center visualizations.",
   "license": "MIT",
+  "keywords": ["sonification", "nasa", "space-apps-2026", "accessibility", "ai-assisted"],
   "scripts": {
     "dev": "vite",
     "build": "tsc --noEmit && vite build",
