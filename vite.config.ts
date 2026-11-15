@@ -11,6 +11,7 @@ export default defineConfig({
         how: resolve(import.meta.dirname, 'how.html'),
         'embed-demo': resolve(import.meta.dirname, 'embed-demo.html'),
         frame: resolve(import.meta.dirname, 'frame.html'),
+        demo: resolve(import.meta.dirname, 'demo.html'),
         embed: resolve(import.meta.dirname, 'src/embed.ts'),
       },
       output: {
