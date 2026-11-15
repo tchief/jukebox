@@ -313,3 +313,16 @@ if (kiosk) {
 const start = params.get('viz')
 const startIndex = Math.max(0, CATALOG.findIndex((c) => c.id === start || String(c.svs) === start), kiosk && !start ? 1 : 0)
 void select(startIndex)
+
+// ───────────── Version note ─────────────
+// The Space Apps submission is frozen on the production URL; ongoing work deploys to
+// branch previews (e.g. main.conduct-the-earth.pages.dev). Say which one this is.
+{
+  const sub = location.hostname.split('.')[0]
+  if (location.hostname.endsWith('.pages.dev') && location.hostname.split('.').length > 3 && sub !== 'submission') {
+    const note = document.createElement('p')
+    note.className = 'version-note'
+    note.innerHTML = 'In-development version, newer than our NASA Space Apps 2026 submission. Judges: the submitted version is at <a href="https://conduct-the-earth.pages.dev">conduct-the-earth.pages.dev</a>. Museums and galleries are welcome to try either.'
+    document.body.prepend(note)
+  }
+}

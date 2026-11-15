@@ -114,3 +114,5 @@ body.kiosk .controls .play { font-size: 1.3rem; padding: 1rem 2rem; }
 .meter em { font-style: normal; font-variant-numeric: tabular-nums; color: #cfd8ea; }
 #sections button { touch-action: none; user-select: none; -webkit-user-select: none; -webkit-touch-callout: none; }
 #sections button.solo { outline: 3px solid #ffd666; transform: scale(1.04); box-shadow: 0 0 18px rgba(255, 214, 102, .6); }
+.version-note { margin: 0; padding: .5rem 16px; background: #3a2d00; color: #ffe9a8; font-size: .9rem; text-align: center; }
+.version-note a { color: #ffd666; }
