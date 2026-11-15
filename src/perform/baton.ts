@@ -27,19 +27,22 @@ export async function enableBaton(conductor: Conductor, onBeat?: () => void): Pr
   let lastStroke = 0, armed = true
   let lastSend = 0
   let lastSections = ''
+  let base: number | null = null
 
   const onOrient = (e: DeviceOrientationEvent) => {
     const now = performance.now()
     if (now - lastSend < 60) return
     lastSend = now
     const beta = e.beta ?? 45, gamma = e.gamma ?? 0
-    // Phone held flat = soft, raised upright = loud.
-    const d = dyn.next(clamp((beta - 10) / 70, 0, 1) * 1.4 + 0.1)
+    // Calibrate to however the phone is held when the baton is switched on: that pose
+    // = normal loudness with strings, basses and melody. Raise it to bring in drums and
+    // brass and play louder; lower it for a softer, thinner sound (never silent).
+    if (base === null) base = beta
+    const level = dyn.next(clamp(0.8 + (beta - base) / 50, 0.3, 1.5))
     const s = spot.next(clamp((gamma + 45) / 90, 0, 1))
-    // Like a conductor raising the arms: higher brings more sections in.
-    const sections = { strings: true, bass: d > 0.3, melody: d > 0.55, percussion: d > 0.9, brass: d > 1.15 }
+    const sections = { strings: true, bass: level > 0.45, melody: level > 0.6, percussion: level > 1.0, brass: level > 1.2 }
     const key = Object.values(sections).join()
-    conductor.input({ dynamics: d, spotlight: Math.abs(gamma) < 6 ? null : s, ...(key !== lastSections ? { sections } : {}) })
+    conductor.input({ dynamics: level, spotlight: Math.abs(gamma) < 8 ? null : s, ...(key !== lastSections ? { sections } : {}) })
     lastSections = key
   }
 

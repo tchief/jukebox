@@ -264,7 +264,7 @@ if (batonSupported()) {
   // A big, obvious live panel: you see every move change the music.
   const hud = document.createElement('div')
   hud.className = 'baton-hud'; hud.hidden = true
-  hud.innerHTML = `<p class="baton-help">Hold it flat = only strings · raise it = <b>more of the orchestra joins and it gets louder</b> (upright = brass and drums) · tilt left/right = <b>spotlight</b> moves west/east · beat down = <b>tempo</b></p>
+  hud.innerHTML = `<p class="baton-help">Hold the phone as you are now = normal · raise it = <b>louder, drums and brass join</b> · lower it = softer, fewer instruments · tilt left/right = <b>spotlight</b> moves west/east · beat down = <b>tempo</b></p>
     <div class="meter"><span>Loudness</span><i><b id="hud-dyn"></b></i><em id="hud-dyn-v"></em></div>
     <div class="meter"><span>Spotlight</span><i><b id="hud-spot" class="dot"></b></i><em id="hud-spot-v"></em></div>
     <p class="baton-sections" id="hud-sec"></p>
