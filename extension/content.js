@@ -27,7 +27,7 @@
     head.innerHTML = '<strong style="color:#ffd166">Earth Orchestra</strong><a style="color:#6fb7ff" target="_blank" rel="noopener">Open full jukebox ↗</a>'
     head.querySelector('a').href = `${APP}/?viz=${svs}`
     const frame = document.createElement('iframe')
-    frame.src = `${APP}/frame.html?svs=${svs}`
+    frame.src = chrome.runtime.getURL(`player.html?svs=${svs}`)
     frame.title = 'Earth Orchestra player'
     frame.allow = 'autoplay'
     frame.style.cssText = 'display:block;width:100%;height:360px;border:0'
