@@ -1,0 +1,76 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Conduct the Earth: daily</title>
+  <meta name="description" content="Today's NASA daily Earth visualization, played as music." />
+  <style>
+    :root { color-scheme: dark; }
+    html, body { margin: 0; background: #070b16; color: #e8edf7; font: 16px/1.5 system-ui, sans-serif; }
+    main { max-width: 1000px; margin: 0 auto; padding: 16px; }
+    h1 { font-size: 1.6rem; margin: .5rem 0 .25rem; color: #ffd666; }
+    a { color: #8ab4ff; }
+    .muted { color: #9aa7c0; font-size: .9rem; }
+    ul { list-style: none; padding: 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 10px; }
+    li button { width: 100%; text-align: left; background: #141d33; color: inherit; border: 1px solid #233154; border-radius: 10px; padding: .6rem .75rem; font: inherit; cursor: pointer; }
+    li button[aria-current="true"] { border-color: #ffd666; }
+    li button:focus-visible { outline: 2px solid #ffd666; }
+    #player { margin: 1rem 0; min-height: 200px; }
+  </style>
+  <script type="module" src="/src/embed.ts"></script>
+</head>
+<body>
+  <main>
+    <p><a href="/">← Conduct the Earth</a></p>
+    <h1>Today's Earth, as music</h1>
+    <p id="today" class="muted">Loading NASA's daily visualizations…</p>
+    <div id="player" aria-live="polite"></div>
+    <h2>All daily visualizations</h2>
+    <p class="muted">NASA SVS updates these automatically. We analyse them live in your browser, so a new one may take up to a minute to load.</p>
+    <ul id="list"></ul>
+    <p class="muted">Visualizations: <a href="https://svs.gsfc.nasa.gov/gallery/daily-visualizations/">NASA GSFC Scientific Visualization Studio, Daily Visualizations</a> (public domain). Conduct the Earth is an independent Space Apps project, not affiliated with or endorsed by NASA.</p>
+  </main>
+  <script type="module">
+    const GALLERY = 40512 // NASA SVS "Daily Visualizations" gallery
+    const today = document.getElementById('today'), list = document.getElementById('list'), player = document.getElementById('player')
+    function collect(o, out) {
+      if (Array.isArray(o)) o.forEach((x) => collect(x, out))
+      else if (o && typeof o === 'object') {
+        const m = typeof o.url === 'string' && o.url.match(/svs\.gsfc\.nasa\.gov\/(\d+)\/?$/)
+        if (m && o.title && !out.some((x) => x.id === m[1])) out.push({ id: m[1], title: o.title })
+        Object.values(o).forEach((v) => collect(v, out))
+      }
+      return out
+    }
+    function show(item, buttons) {
+      buttons.forEach((b) => b.setAttribute('aria-current', String(b.dataset.id === item.id)))
+      const el = document.createElement('earth-orchestra')
+      el.setAttribute('svs', item.id)
+      player.replaceChildren(el)
+      today.innerHTML = ''
+      const a = document.createElement('a'); a.href = `https://svs.gsfc.nasa.gov/${item.id}/`; a.textContent = item.title
+      today.append('Now playing: ', a)
+      history.replaceState(null, '', `?svs=${item.id}`)
+    }
+    try {
+      const res = await fetch(`/svs/api/${GALLERY}`)
+      if (!res.ok || !(res.headers.get('content-type') || '').includes('json')) throw new Error(`HTTP ${res.status}`)
+      const items = collect((await res.json()).media_groups, []).filter((x) => String(x.id) !== String(GALLERY))
+      if (!items.length) throw new Error('no visualizations listed')
+      const buttons = items.map((item) => {
+        const li = document.createElement('li'), b = document.createElement('button')
+        b.type = 'button'; b.dataset.id = item.id; b.textContent = item.title
+        b.addEventListener('click', () => show(item, buttons))
+        li.append(b); list.append(li); return b
+      })
+      // "Visualization of the day": rotates through the gallery, the same for everyone on a given date.
+      const day = Math.floor(Date.now() / 86400000)
+      const asked = new URLSearchParams(location.search).get('svs')
+      show(items.find((x) => x.id === asked) ?? items[day % items.length], buttons)
+    } catch (e) {
+      today.textContent = `Could not reach NASA's daily gallery right now (${e.message}). Try the main jukebox instead.`
+    }
+  </script>
+</body>
+</html>
