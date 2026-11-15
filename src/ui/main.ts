@@ -178,6 +178,22 @@ stage.addEventListener('pointermove', (e) => {
   engine.conductor.input({ spotlight: spot })
 })
 stage.addEventListener('pointerleave', () => { spot = null; engine.conductor.input({ spotlight: null }) })
+// Finger (or mouse button) held on the map = fermata; sliding up/down moves the melody an octave.
+let holdTimer = 0
+stage.addEventListener('pointerdown', (e) => {
+  if (e.pointerType === 'mouse' && e.button !== 0) return
+  try { stage.setPointerCapture(e.pointerId) } catch { /* ignore */ }
+  holdTimer = window.setTimeout(() => { engine.hold(true); navigator.vibrate?.(60); $('live').textContent = 'Fermata: holding' }, 250)
+})
+stage.addEventListener('pointermove', (e) => {
+  if (!e.buttons && e.pointerType === 'mouse') return
+  const r = stage.getBoundingClientRect()
+  const y = (e.clientY - r.top) / r.height
+  engine.octave = y < 0.3 ? 1 : y > 0.7 ? -1 : 0
+})
+const releaseHold = () => { clearTimeout(holdTimer); if (engine.held) { engine.hold(false); $('live').textContent = 'Playing on' } engine.octave = 0 }
+stage.addEventListener('pointerup', releaseHold)
+stage.addEventListener('pointercancel', releaseHold)
 
 function draw() {
   const r = stage.getBoundingClientRect()
@@ -265,9 +281,18 @@ if (batonSupported()) {
   const hud = document.createElement('div')
   hud.className = 'baton-hud'; hud.hidden = true
   hud.innerHTML = `<p class="baton-help">Hold the phone as you are now = normal · raise it = <b>louder, drums and brass join</b> · lower it = softer, fewer instruments · tilt left/right = <b>spotlight</b> moves west/east · beat down = <b>tempo</b></p>
+    <details class="baton-more"><summary>More gestures</summary><ul>
+      <li><b>Turn it like a dial</b> (around the screen): timbre, from soft and dark to bright.</li>
+      <li><b>Shake it sharply</b>: the whole orchestra hits together (tutti).</li>
+      <li><b>Draw smooth circles</b>: long, connected notes (legato).</li>
+      <li><b>Hold a finger on the map</b>: the music holds still (fermata); let go and it plays on.</li>
+      <li><b>Slide the finger</b> left/right: spotlight west/east; up/down: melody an octave higher/lower.</li>
+    </ul></details>
+    <p class="baton-tutti" id="hud-tutti" aria-live="polite"></p>
     <div class="meter"><span>Loudness</span><i><b id="hud-dyn"></b></i><em id="hud-dyn-v"></em></div>
     <div class="meter"><span>Spotlight</span><i><b id="hud-spot" class="dot"></b></i><em id="hud-spot-v"></em></div>
     <p class="baton-sections" id="hud-sec"></p>
+    <div class="meter"><span>Timbre</span><i><b id="hud-bright"></b></i><em id="hud-bright-v"></em></div>
     <div class="meter"><span>Tempo</span><i><b id="hud-tempo"></b></i><em id="hud-tempo-v"></em></div>`
   document.querySelector('.controls')!.after(hud)
   const showHud = () => {
@@ -279,6 +304,7 @@ if (batonSupported()) {
     $('hud-spot').style.opacity = sp == null ? '0.3' : '1'
     $('hud-spot-v').textContent = sp == null ? 'whole map' : sp < 0.4 ? 'west' : sp > 0.6 ? 'east' : 'centre'
     $('hud-sec').textContent = 'Playing: ' + SECTIONS.filter((x) => st.sections[x.id]).map((x) => x.label).join(' + ')
+    $('hud-bright').style.width = `${Math.round(engine.brightness * 100)}%`; $('hud-bright-v').textContent = engine.brightness < 0.35 ? 'dark' : engine.brightness > 0.75 ? 'bright' : 'warm'
     $('hud-tempo').style.width = `${Math.round(Math.min(1, st.tempo / 2) * 100)}%`
     $('hud-tempo-v').textContent = `${Math.round(engine.recipe.bpm * st.tempo)} bpm`
   }
@@ -289,7 +315,11 @@ if (batonSupported()) {
     // Start the sound inside the tap itself (phones only allow audio from a direct tap).
     if (!engine.playing) void togglePlay()
     try {
-      stop = await enableBaton(engine.conductor, () => { navigator.vibrate?.(15); hud.classList.remove('beat'); void hud.offsetWidth; hud.classList.add('beat') })
+      stop = await enableBaton(engine.conductor, () => { navigator.vibrate?.(15); hud.classList.remove('beat'); void hud.offsetWidth; hud.classList.add('beat') }, {
+        brightness: (x) => { engine.setBrightness(x); showHud() },
+        tutti: () => { engine.tutti(); hud.classList.remove('beat'); void hud.offsetWidth; hud.classList.add('beat'); $('hud-tutti').textContent = 'TUTTI!'; setTimeout(() => ($('hud-tutti').textContent = ''), 600) },
+        legato: (x) => { engine.legato = x },
+      })
       b.textContent = '📱 Baton on (tap to stop)'; b.setAttribute('aria-pressed', 'true')
       hud.hidden = false; showHud()
     } catch (e) { $('live').textContent = (e as Error).message; hud.hidden = false; hud.querySelector('.baton-help')!.textContent = `Motion sensors are not available: ${(e as Error).message}` }

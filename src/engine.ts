@@ -50,6 +50,12 @@ export class EarthOrchestraEngine {
 
   private voices?: Voices
   private master?: Tone.Gain
+  private tone?: Tone.Filter
+  /** Expressive controls (phone baton / touch): 0..1 brightness, note-length factor, melody octave. */
+  brightness = 1
+  legato = 1
+  octave = 0
+  held = false
   private repeatId?: number
   private beat = 0
   private stats?: TimelineStats
@@ -187,7 +193,11 @@ export class EarthOrchestraEngine {
     if (!this.samples.length) return
     unlockMobileAudio()
     await Tone.start()
-    if (!this.master) this.master = new Tone.Gain(1).connect(new Tone.Limiter(-1).toDestination())
+    if (!this.master) {
+      this.tone = new Tone.Filter({ type: 'lowpass', frequency: 16000, rolloff: -12 }).connect(new Tone.Limiter(-1).toDestination())
+      this.master = new Tone.Gain(1).connect(this.tone)
+      this.setBrightness(this.brightness)
+    }
     if (!this.voices) { this.voices = ensembles.get(this.recipe.ensemble).build(this.master); await Tone.loaded() }
     const tr = Tone.getTransport()
     this.applyConductor(this.conductor.state().tempo, this.conductor.state().dynamics)
@@ -218,6 +228,33 @@ export class EarthOrchestraEngine {
     this.beat = (((Math.round(bar) % bars) + bars) % bars) * BEATS_PER_BAR
   }
 
+  /** Timbre: 0 = soft and dark, 1 = full and bright. The notes stay the same. */
+  setBrightness(x: number) {
+    this.brightness = Math.max(0, Math.min(1, x))
+    this.tone?.frequency.rampTo(300 * Math.pow(16000 / 300, this.brightness), 0.08)
+  }
+
+  /** Fermata: hold the music still while a finger is down, go on when released. */
+  hold(on: boolean) {
+    if (on === this.held || !this.playing) return
+    this.held = on
+    const v = this.source?.element instanceof HTMLVideoElement ? this.source.element : null
+    if (on) { Tone.getTransport().pause(); v?.pause() } else { Tone.getTransport().start(); void v?.play().catch(() => {}) }
+  }
+
+  /** A full-orchestra accent right now (a sharp shake of the baton). */
+  tutti() {
+    if (!this.voices || !this.stats || !this.playing) return
+    const spb = 60 / Tone.getTransport().bpm.value
+    const b = Math.max(0, this.beat - 1) - (Math.max(0, this.beat - 1) % BEATS_PER_BAR)
+    const input = { beats: this.beats, recipe: this.recipe, translation: this.entry.translation }
+    const now = Tone.now() + 0.02
+    for (const ev of eventsForBeat(input, b, this.stats, null)) {
+      if (Number.isNaN(ev.pitch) && ev.voice !== 'perc') continue
+      this.voices.play({ ...ev, velocity: 1, time: b, dur: Math.max(ev.dur, 1) }, now, spb)
+    }
+  }
+
   private applyConductor(tempo: number, dynamics: number) {
     Tone.getTransport().bpm.value = this.recipe.bpm * tempo
     this.master?.gain.rampTo(dynamics, 0.2)
@@ -237,7 +274,8 @@ export class EarthOrchestraEngine {
     const events = eventsForBeat(input, b, this.stats, cs.spotlight)
     for (const ev of events) {
       if (!voiceEnabled(ev.voice, cs.sections)) continue
-      this.voices.play(ev, time + (ev.time - b) * spb, spb)
+      const shaped = { ...ev, dur: ev.dur * this.legato, pitch: ev.voice === 'melody' && !Number.isNaN(ev.pitch) ? ev.pitch + 12 * this.octave : ev.pitch }
+      this.voices.play(shaped, time + (ev.time - b) * spb, spb)
     }
     const features = input.beats[b]
     Tone.getDraw().schedule(() => {

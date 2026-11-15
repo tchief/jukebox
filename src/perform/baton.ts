@@ -11,7 +11,16 @@
 import { Smoother, clamp } from '../core/math'
 import type { Conductor } from './conductor'
 
-export async function enableBaton(conductor: Conductor, onBeat?: () => void): Promise<() => void> {
+export interface BatonExtras {
+  /** Twist of the wrist → timbre, 0 dark … 1 bright. */
+  brightness?: (x: number) => void
+  /** Sharp shake → full-orchestra accent. */
+  tutti?: () => void
+  /** Smooth circles → legato (note-length factor, 1 = normal). */
+  legato?: (x: number) => void
+}
+
+export async function enableBaton(conductor: Conductor, onBeat?: () => void, extras: BatonExtras = {}): Promise<() => void> {
   const DO = DeviceOrientationEvent as unknown as { requestPermission?: () => Promise<string> }
   const DM = DeviceMotionEvent as unknown as { requestPermission?: () => Promise<string> }
   // iPhone asks the user; some browsers expose the call but grant silently. Only a real
@@ -28,6 +37,9 @@ export async function enableBaton(conductor: Conductor, onBeat?: () => void): Pr
   let lastSend = 0
   let lastSections = ''
   let base: number | null = null
+  let baseAlpha: number | null = null
+  const bright = new Smoother(0.8), circle = new Smoother(0.92)
+  let lastTutti = 0
 
   const onOrient = (e: DeviceOrientationEvent) => {
     const now = performance.now()
@@ -38,6 +50,12 @@ export async function enableBaton(conductor: Conductor, onBeat?: () => void): Pr
     // = normal loudness with strings, basses and melody. Raise it to bring in drums and
     // brass and play louder; lower it for a softer, thinner sound (never silent).
     if (base === null) base = beta
+    // Twist (turning the phone like a dial, around the screen): timbre.
+    if (e.alpha != null) {
+      if (baseAlpha === null) baseAlpha = e.alpha
+      const twist = ((e.alpha - baseAlpha + 540) % 360) - 180 // -180..180
+      extras.brightness?.(bright.next(clamp(0.75 - twist / 120, 0, 1)))
+    }
     const level = dyn.next(clamp(0.8 + (beta - base) / 50, 0.3, 1.5))
     const s = spot.next(clamp((gamma + 45) / 90, 0, 1))
     const sections = { strings: true, bass: level > 0.45, melody: level > 0.6, percussion: level > 1.0, brass: level > 1.2 }
@@ -49,6 +67,15 @@ export async function enableBaton(conductor: Conductor, onBeat?: () => void): Pr
   const onMotion = (e: DeviceMotionEvent) => {
     const a = e.acceleration?.y ?? e.accelerationIncludingGravity?.y ?? 0
     const now = performance.now()
+    // A sharp shake in any direction: the whole orchestra hits together.
+    const ac = e.acceleration
+    const mag = ac ? Math.hypot(ac.x ?? 0, ac.y ?? 0, ac.z ?? 0) : 0
+    if (mag > 25 && now - lastTutti > 700) { lastTutti = now; extras.tutti?.(); navigator.vibrate?.([40, 30, 60]) }
+    // Smooth circles: steady rotation without jerks → long, connected notes.
+    const r = e.rotationRate
+    const spin = r ? Math.hypot(r.alpha ?? 0, r.beta ?? 0, r.gamma ?? 0) : 0
+    const smooth = circle.next(spin > 90 && mag < 12 ? 1 : 0)
+    extras.legato?.(1 + smooth * 2)
     // A downward stroke: strong negative acceleration, re-armed once it settles.
     if (armed && a < -9) {
       armed = false
