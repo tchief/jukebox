@@ -2,6 +2,8 @@
 
 **Hear NASA's Earth data. Conduct the planet.**
 
+**Live:** https://earth-orchestra.pages.dev · [How it works](https://earth-orchestra.pages.dev/how) · [Embed example](https://earth-orchestra.pages.dev/embed-demo) · [Kiosk](https://earth-orchestra.pages.dev/?kiosk=1)
+
 Earth Orchestra is an "Earth Jukebox" for the NASA Space Apps Challenge 2026 challenge
 *The Earth Information Jukebox*. It turns NASA Earth Information Center (EIC) visualizations
 into music in real time, so people who cannot see them (and everyone else) can hear our changing planet.
@@ -54,6 +56,20 @@ npm run build    # → dist/
 
 Deployment: Cloudflare Pages, build `npm run build`, output `dist`. `functions/svs/[[path]].ts` is a
 read-only proxy to `svs.gsfc.nasa.gov` (API and media only) so the browser can read video pixels.
+
+## Precompute pipeline (SVS number → features → soundtrack)
+
+```bash
+npx tsx scripts/precompute.ts 3912            # analyse an SVS visualization → public/features/3912.json + light video copy
+node scripts/render-soundtracks.cjs <url> out 3912   # NASA video + Earth Orchestra audio → MP4 for the EIC
+```
+
+## Roadmap
+
+- Shared room: phones join by QR code and conduct a big screen together (Cloudflare Durable Objects)
+- Browser extension: an optional "play as music" button on SVS pages
+- Daily EIC visualizations sonified automatically (Cron Trigger + precompute)
+- More musical languages (ragas, maqam, gamelan tunings), human preference testing, MusicXML scores
 
 ## Data and credits
 
