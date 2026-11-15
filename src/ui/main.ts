@@ -235,9 +235,10 @@ if (batonSupported()) {
   // A big, obvious live panel: you see every move change the music.
   const hud = document.createElement('div')
   hud.className = 'baton-hud'; hud.hidden = true
-  hud.innerHTML = `<p class="baton-help">Raise the phone = <b>louder</b> · tilt left/right = <b>spotlight</b> moves west/east · beat down = <b>tempo</b></p>
+  hud.innerHTML = `<p class="baton-help">Hold it flat = only strings · raise it = <b>more of the orchestra joins and it gets louder</b> (upright = brass and drums) · tilt left/right = <b>spotlight</b> moves west/east · beat down = <b>tempo</b></p>
     <div class="meter"><span>Loudness</span><i><b id="hud-dyn"></b></i><em id="hud-dyn-v"></em></div>
     <div class="meter"><span>Spotlight</span><i><b id="hud-spot" class="dot"></b></i><em id="hud-spot-v"></em></div>
+    <p class="baton-sections" id="hud-sec"></p>
     <div class="meter"><span>Tempo</span><i><b id="hud-tempo"></b></i><em id="hud-tempo-v"></em></div>`
   document.querySelector('.controls')!.after(hud)
   const showHud = () => {
@@ -248,13 +249,14 @@ if (batonSupported()) {
     $('hud-spot').style.left = sp == null ? '50%' : `${Math.round(sp * 100)}%`
     $('hud-spot').style.opacity = sp == null ? '0.3' : '1'
     $('hud-spot-v').textContent = sp == null ? 'whole map' : sp < 0.4 ? 'west' : sp > 0.6 ? 'east' : 'centre'
+    $('hud-sec').textContent = 'Playing: ' + SECTIONS.filter((x) => st.sections[x.id]).map((x) => x.label).join(' + ')
     $('hud-tempo').style.width = `${Math.round(Math.min(1, st.tempo / 2) * 100)}%`
     $('hud-tempo-v').textContent = `${Math.round(engine.recipe.bpm * st.tempo)} bpm`
   }
   engine.conductor.listeners.push(() => { if (!hud.hidden) showHud() })
   let stop: (() => void) | null = null
   b.addEventListener('click', async () => {
-    if (stop) { stop(); stop = null; hud.hidden = true; b.textContent = '📱 Phone as baton'; b.setAttribute('aria-pressed', 'false'); return }
+    if (stop) { stop(); stop = null; hud.hidden = true; engine.conductor.input({ sections: Object.fromEntries(SECTIONS.map((x) => [x.id, true])) }); b.textContent = '📱 Phone as baton'; b.setAttribute('aria-pressed', 'false'); return }
     // Start the sound inside the tap itself (phones only allow audio from a direct tap).
     if (!engine.playing) void togglePlay()
     try {
