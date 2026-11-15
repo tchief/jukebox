@@ -87,7 +87,7 @@ dialog::backdrop { background: rgba(0,0,0,0.6); }
 body.kiosk .layout { grid-template-columns: 1fr; }
 body.kiosk .catalog, body.kiosk .side, body.kiosk .links, body.kiosk .foot, body.kiosk .hint { display: none; }
 
-@media (max-width: 1100px) { .layout { grid-template-columns: 1fr; } }
+@media (max-width: 1100px) { .layout { grid-template-columns: 1fr; } .catalog { order: 2; } .side { order: 3; } }
 @media (max-width: 640px) {
   .top, .layout { padding-left: 16px; padding-right: 16px; }
   .sections { grid-template-columns: repeat(2, minmax(0, 1fr)); }

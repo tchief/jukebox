@@ -228,6 +228,9 @@ export class EarthOrchestraEngine {
     this.beat = (((Math.round(bar) % bars) + bars) % bars) * BEATS_PER_BAR
   }
 
+  /** Phones can suspend audio (calls, other apps, power saving): wake it up again. */
+  resumeAudio() { if (this.playing && Tone.getContext().state !== 'running') void Tone.getContext().resume() }
+
   /** Timbre: 0 = soft and dark, 1 = full and bright. The notes stay the same. */
   setBrightness(x: number) {
     this.brightness = Math.max(0, Math.min(1, x))

@@ -356,3 +356,7 @@ void select(startIndex)
     document.body.prepend(note)
   }
 }
+
+// Phones may suspend the audio context mid-performance; any touch or returning to the tab wakes it.
+document.addEventListener('pointerdown', () => engine.resumeAudio(), { capture: true })
+document.addEventListener('visibilitychange', () => { if (!document.hidden) engine.resumeAudio() })
