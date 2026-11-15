@@ -1,6 +1,6 @@
 {
   "manifest_version": 3,
-  "name": "Earth Orchestra for NASA SVS",
+  "name": "Conduct the Earth for NASA SVS",
   "version": "1.0.0",
   "description": "Adds an optional \"Play as music\" button to NASA Scientific Visualization Studio pages: hear the visualization as an orchestra.",
   "icons": {

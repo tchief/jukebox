@@ -1,5 +1,5 @@
 /**
- * Core data contracts of Earth Orchestra.
+ * Core data contracts of Conduct the Earth.
  *
  *   Frames → Analyzer → FrameFeatures → Translation → Intents
  *          → MusicSystem → NoteEvent[] → Ensemble (voices) → sound

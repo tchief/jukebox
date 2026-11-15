@@ -1,4 +1,4 @@
-// Earth Orchestra: adds an optional "Play as music" panel to NASA SVS visualization pages.
+// Conduct the Earth: adds an optional "Play as music" panel to NASA SVS visualization pages.
 // The NASA page is never changed; the player runs in an iframe from earth-orchestra.pages.dev.
 (() => {
   const APP = 'https://earth-orchestra.pages.dev'
@@ -8,7 +8,7 @@
 
   const box = document.createElement('aside')
   box.id = 'earth-orchestra-ext'
-  box.setAttribute('aria-label', 'Earth Orchestra: hear this visualization as music')
+  box.setAttribute('aria-label', 'Conduct the Earth: hear this visualization as music')
   box.style.cssText = 'position:fixed;right:16px;bottom:16px;z-index:2147483647;font:15px/1.4 system-ui,sans-serif;'
 
   const btn = document.createElement('button')
@@ -24,11 +24,11 @@
     panel.style.cssText = 'width:min(560px,calc(100vw - 32px));margin-bottom:10px;border-radius:14px;overflow:hidden;background:#070b16;box-shadow:0 10px 40px rgba(0,0,0,.45)'
     const head = document.createElement('div')
     head.style.cssText = 'display:flex;justify-content:space-between;align-items:center;padding:8px 12px;color:#e8edf7;background:#0e1526'
-    head.innerHTML = '<strong style="color:#ffd166">Earth Orchestra</strong><a style="color:#6fb7ff" target="_blank" rel="noopener">Open full jukebox ↗</a>'
+    head.innerHTML = '<strong style="color:#ffd166">Conduct the Earth</strong><a style="color:#6fb7ff" target="_blank" rel="noopener">Open full jukebox ↗</a>'
     head.querySelector('a').href = `${APP}/?viz=${svs}`
     const frame = document.createElement('iframe')
     frame.src = chrome.runtime.getURL(`player.html?svs=${svs}`)
-    frame.title = 'Earth Orchestra player'
+    frame.title = 'Conduct the Earth player'
     frame.allow = 'autoplay'
     frame.style.cssText = 'display:block;width:100%;height:360px;border:0'
     panel.append(head, frame)

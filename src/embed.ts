@@ -37,11 +37,11 @@ class EarthOrchestraElement extends HTMLElement {
   async connectedCallback() {
     this.root.innerHTML = `<style>${CSS}</style>
       <div class="box"><div class="vis"></div><div class="msg" role="status">Loading…</div></div>
-      <div class="bar" role="group" aria-label="Earth Orchestra sonification">
+      <div class="bar" role="group" aria-label="Conduct the Earth sonification">
         <button class="play" type="button" disabled>Play sound</button>
         <select aria-label="Sound"></select>
         <button class="desc" type="button">Describe</button>
-        <span class="credit">Sound: <a href="${BASE}/" target="_blank" rel="noopener">Earth Orchestra</a></span>
+        <span class="credit">Sound: <a href="${BASE}/" target="_blank" rel="noopener">Conduct the Earth</a></span>
       </div>
       <div class="sr" aria-live="polite" style="position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)"></div>`
     const $ = <T extends Element>(s: string) => this.root.querySelector(s) as T
