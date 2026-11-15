@@ -9,6 +9,12 @@
  * while the data still writes every note.
  */
 import * as Tone from 'tone'
+
+// Phones (Android especially) crackle and drop out with the default low-latency buffer.
+// A "playback" context uses bigger buffers: smooth sound, and latency does not matter here.
+if (typeof window !== 'undefined' && /Android|iPhone|iPad|Mobile/i.test(navigator.userAgent)) {
+  Tone.setContext(new Tone.Context({ latencyHint: 'playback', lookAhead: 0.3 }))
+}
 import type { FrameFeatures, NoteEvent, Recipe } from './core/types'
 import { BEATS_PER_BAR, buildScore, eventsForBeat } from './core/score'
 import { recipeById } from './core/recipes'
