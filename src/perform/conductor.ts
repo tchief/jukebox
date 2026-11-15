@@ -41,6 +41,10 @@ export class Conductor {
 
   toggleSection(id: SectionId) { this.input({ sections: { [id]: !this.sections[id] } }) }
 
+  /** Solo: while held, only this section plays (null = everyone back). */
+  soloId: SectionId | null = null
+  solo(id: SectionId | null) { this.soloId = id; this.lastInput = performance.now() / 1000; this.emit() }
+
   nudge(key: 'tempo' | 'dynamics', delta: number) {
     const cur = this.state()[key]
     this.input({ [key]: clamp(cur + delta, key === 'tempo' ? 0.5 : 0, key === 'tempo' ? 2 : 1.5) })
@@ -52,7 +56,10 @@ export class Conductor {
   reset() { this.human = {}; this.lastInput = -Infinity; this.emit() }
 
   state(now = performance.now() / 1000): ConductorState {
-    const auto: ConductorState = { tempo: 1, dynamics: 1, sections: this.sections, spotlight: null }
+    const sections = this.soloId
+      ? (Object.fromEntries(SECTIONS.map((x) => [x.id, x.id === this.soloId])) as Record<SectionId, boolean>)
+      : this.sections
+    const auto: ConductorState = { tempo: 1, dynamics: 1, sections, spotlight: null }
     if (!this.active(now)) {
       // Back on autopilot: forget human tempo/dynamics/spotlight, keep section choices.
       this.human = {}
@@ -61,7 +68,7 @@ export class Conductor {
     return {
       tempo: this.human.tempo ?? auto.tempo,
       dynamics: this.human.dynamics ?? auto.dynamics,
-      sections: this.sections,
+      sections,
       spotlight: this.human.spotlight === undefined ? null : this.human.spotlight,
     }
   }

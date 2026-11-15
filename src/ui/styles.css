@@ -112,3 +112,5 @@ body.kiosk .controls .play { font-size: 1.3rem; padding: 1rem 2rem; }
 .meter i b { position: absolute; left: 0; top: 0; bottom: 0; background: #ffd666; border-radius: 9px; transition: width .1s, left .1s; }
 .meter i b.dot { width: 18px; transform: translateX(-50%); background: #8ab4ff; }
 .meter em { font-style: normal; font-variant-numeric: tabular-nums; color: #cfd8ea; }
+#sections button { touch-action: none; user-select: none; -webkit-user-select: none; -webkit-touch-callout: none; }
+#sections button.solo { outline: 3px solid #ffd666; transform: scale(1.04); box-shadow: 0 0 18px rgba(255, 214, 102, .6); }

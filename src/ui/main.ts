@@ -48,7 +48,22 @@ SECTIONS.forEach((s) => {
   b.setAttribute('aria-pressed', 'true')
   b.setAttribute('aria-keyshortcuts', s.key.toUpperCase())
   b.innerHTML = `<kbd>${s.key.toUpperCase()}</kbd><span>${s.label}</span>`
-  b.addEventListener('click', () => engine.conductor.toggleSection(s.id))
+  // Tap = section on/off. Press and hold = solo: only this section plays until you let go.
+  let holdTimer = 0, soloing = false
+  b.addEventListener('pointerdown', (e) => {
+    e.preventDefault(); try { b.setPointerCapture(e.pointerId) } catch { /* not capturable */ }
+    soloing = false
+    holdTimer = window.setTimeout(() => { soloing = true; b.classList.add('solo'); engine.conductor.solo(s.id); navigator.vibrate?.(20) }, 300)
+  })
+  const release = () => {
+    clearTimeout(holdTimer)
+    if (soloing) { soloing = false; b.classList.remove('solo'); engine.conductor.solo(null) }
+    else engine.conductor.toggleSection(s.id)
+  }
+  b.addEventListener('pointerup', release)
+  b.addEventListener('pointercancel', () => { clearTimeout(holdTimer); if (soloing) { soloing = false; b.classList.remove('solo'); engine.conductor.solo(null) } })
+  b.addEventListener('contextmenu', (e) => e.preventDefault())
+  b.addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); e.stopPropagation(); engine.conductor.toggleSection(s.id) } })
   pads.set(s.id, b); $('sections').appendChild(b)
 })
 
@@ -197,6 +212,14 @@ function draw() {
 requestAnimationFrame(draw)
 
 // ───────────── Keyboard ─────────────
+const keyDownAt = new Map<string, number>()
+document.addEventListener('keyup', (e) => {
+  const sec = SECTIONS.find((s) => s.key === e.key.toLowerCase())
+  if (!sec || !keyDownAt.has(sec.id)) return
+  keyDownAt.delete(sec.id)
+  if (engine.conductor.soloId === sec.id) { engine.conductor.solo(null); pads.get(sec.id)?.classList.remove('solo') }
+  else engine.conductor.toggleSection(sec.id)
+})
 const help = $<HTMLDialogElement>('help')
 $('help-btn').addEventListener('click', () => help.showModal())
 document.addEventListener('keydown', (e) => {
@@ -205,7 +228,13 @@ document.addEventListener('keydown', (e) => {
   if (e.metaKey || e.ctrlKey || e.altKey) return
   const k = e.key.toLowerCase()
   const sec = SECTIONS.find((s) => s.key === k)
-  if (sec) { engine.conductor.toggleSection(sec.id); e.preventDefault(); return }
+  if (sec) {
+    e.preventDefault()
+    // Tap the key = on/off; hold it = solo until released.
+    if (e.repeat) { if (engine.conductor.soloId !== sec.id) { engine.conductor.solo(sec.id); pads.get(sec.id)?.classList.add('solo') } return }
+    keyDownAt.set(sec.id, performance.now())
+    return
+  }
   switch (e.key) {
     case ' ': if (t.tagName !== 'BUTTON') { e.preventDefault(); void togglePlay() } break
     case 'ArrowLeft': case 'ArrowRight': {

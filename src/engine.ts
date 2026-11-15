@@ -293,6 +293,9 @@ let unlocked = false
 function unlockMobileAudio() {
   if (unlocked) return
   unlocked = true
+  // Only iPhone/iPad need this; on Android a looping <audio> steals audio focus and can silence Web Audio.
+  const isIOS = /iP(hone|ad|od)/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1)
+  if (!isIOS) return
   try { (navigator as unknown as { audioSession?: { type: string } }).audioSession!.type = 'playback' } catch { /* not supported */ }
   try {
     const a = new Audio('data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQAAAAA=')
