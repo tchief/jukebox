@@ -1,0 +1,23 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Earth Orchestra player</title>
+  <style>
+    html, body { margin: 0; background: #070b16; color: #e8edf7; font: 15px/1.4 system-ui, sans-serif; }
+    earth-orchestra { display: block; }
+  </style>
+  <script type="module" src="/src/embed.ts"></script>
+</head>
+<body>
+  <!-- iframe-friendly player: /frame.html?svs=3912&sound=orchestra -->
+  <script>
+    const q = new URLSearchParams(location.search)
+    const el = document.createElement('earth-orchestra')
+    el.setAttribute('svs', q.get('svs') || 'demo-ocean')
+    if (q.get('sound')) el.setAttribute('sound', q.get('sound'))
+    document.body.appendChild(el)
+  </script>
+</body>
+</html>

@@ -1,0 +1,14 @@
+{
+  "manifest_version": 3,
+  "name": "Earth Orchestra for NASA SVS",
+  "version": "1.0.0",
+  "description": "Adds an optional \"Play as music\" button to NASA Scientific Visualization Studio pages: hear the visualization as an orchestra.",
+  "icons": { "48": "icon48.png", "128": "icon128.png" },
+  "content_scripts": [
+    {
+      "matches": ["https://svs.gsfc.nasa.gov/*"],
+      "js": ["content.js"],
+      "run_at": "document_idle"
+    }
+  ]
+}

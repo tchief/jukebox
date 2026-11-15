@@ -38,6 +38,8 @@ Variants are **recipes** (`src/core/recipes.ts`): the same recipe and frames alw
 ## Use it
 
 - App: `/` · Kiosk: `/?kiosk=1` · Start with a visualization: `/?viz=3912`
+- Browser extension (`extension/`, or [download zip](https://earth-orchestra.pages.dev/earth-orchestra-extension.zip)): adds an optional "Play as music" button to every NASA SVS page. Install: unzip → `chrome://extensions` → Developer mode → Load unpacked.
+- Iframe player: `/frame.html?svs=3912&sound=orchestra`
 - Embed on any page:
 
 ```html
@@ -67,7 +69,6 @@ node scripts/render-soundtracks.cjs <url> out 3912   # NASA video + Earth Orches
 ## Roadmap
 
 - Shared room: phones join by QR code and conduct a big screen together (Cloudflare Durable Objects)
-- Browser extension: an optional "play as music" button on SVS pages
 - Daily EIC visualizations sonified automatically (Cron Trigger + precompute)
 - More musical languages (ragas, maqam, gamelan tunings), human preference testing, MusicXML scores
 
